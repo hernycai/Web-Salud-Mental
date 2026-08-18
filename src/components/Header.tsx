@@ -147,7 +147,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
-                  aria-label="Limpiar búsqueda"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

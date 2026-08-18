@@ -45,10 +45,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({
   }, [doc.id]);
 
   const handleCopyLink = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('doc', doc.id);
-    url.searchParams.delete('tab');
-    navigator.clipboard.writeText(url.toString());
+    navigator.clipboard.writeText(window.location.href);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
   };
@@ -63,10 +60,7 @@ export const DocumentView: React.FC<DocumentViewProps> = ({
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
     } else {
-      const conclusionsText = doc.content.conclusions && doc.content.conclusions.length > 0
-        ? ` Conclusiones: ${doc.content.conclusions.join('. ')}`
-        : '';
-      const textToRead = `${doc.title}. ${doc.subtitle}. Resumen Ejecutivo: ${doc.content.executiveSummary}.${conclusionsText}`;
+      const textToRead = `${doc.title}. ${doc.subtitle}. Resumen Ejecutivo: ${doc.content.executiveSummary}.`;
       const utterance = new SpeechSynthesisUtterance(textToRead);
       utterance.lang = 'es-ES';
       utterance.rate = 1.0;
