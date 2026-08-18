@@ -57,6 +57,17 @@ export const CommunityBoard: React.FC<CommunityBoardProps> = ({ onOpenEmergency 
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   useEffect(() => {
+    if (!showModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showModal]);
+
+  useEffect(() => {
     localStorage.setItem('salud_mental_stories', JSON.stringify(stories));
   }, [stories]);
 
@@ -271,11 +282,22 @@ export const CommunityBoard: React.FC<CommunityBoardProps> = ({ onOpenEmergency 
 
       {/* MODAL: SUBMIT STORY */}
       {showModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
+        <div 
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+        >
+          <div 
+            className="relative bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="community-modal-title"
+          >
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Cerrar modal de testimonios"
             >
               <X className="w-5 h-5" />
             </button>
@@ -285,7 +307,7 @@ export const CommunityBoard: React.FC<CommunityBoardProps> = ({ onOpenEmergency 
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 id="community-modal-title" className="text-xl font-bold text-slate-900">
                   Compartí tu Historia de Forma Anónima
                 </h2>
                 <p className="text-xs text-slate-500">

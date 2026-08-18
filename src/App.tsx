@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   HeartHandshake, 
   BookOpen, 
@@ -22,12 +22,74 @@ import { EmergencyModal } from './components/EmergencyModal';
 import { DOCUMENTS_DATA } from './data/documentsData';
 import { DocumentSection } from './types';
 
+type TabType = 'home' | 'documents' | 'community' | 'contact';
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'documents' | 'community' | 'contact'>('home');
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const getInitialStateFromUrl = () => {
+    if (typeof window === 'undefined') return { tab: 'home' as TabType, docId: null };
+    const params = new URLSearchParams(window.location.search);
+    const docParam = params.get('doc');
+    const tabParam = params.get('tab') as TabType;
+
+    if (docParam && DOCUMENTS_DATA.some(d => d.id === docParam)) {
+      return { tab: 'documents' as TabType, docId: docParam };
+    }
+    if (['home', 'documents', 'community', 'contact'].includes(tabParam)) {
+      return { tab: tabParam, docId: null };
+    }
+    return { tab: 'home' as TabType, docId: null };
+  };
+
+  const initialUrlState = getInitialStateFromUrl();
+  const [activeTab, setActiveTabState] = useState<TabType>(initialUrlState.tab);
+  const [selectedDocId, setSelectedDocIdState] = useState<string | null>(initialUrlState.docId);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('Todos');
+
+  // Update URL helper
+  const updateUrl = useCallback((tab: TabType, docId: string | null) => {
+    const params = new URLSearchParams();
+    if (docId) {
+      params.set('doc', docId);
+    } else if (tab !== 'home') {
+      params.set('tab', tab);
+    }
+    const queryString = params.toString();
+    const newRelativePath = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+    window.history.pushState({ tab, docId }, '', newRelativePath);
+  }, []);
+
+  const navigateToTab = useCallback((tab: TabType) => {
+    setActiveTabState(tab);
+    setSelectedDocIdState(null);
+    updateUrl(tab, null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [updateUrl]);
+
+  const handleOpenDoc = useCallback((id: string) => {
+    setSelectedDocIdState(id);
+    setActiveTabState('documents');
+    updateUrl('documents', id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [updateUrl]);
+
+  const handleBackToDocs = useCallback(() => {
+    setSelectedDocIdState(null);
+    updateUrl('documents', null);
+  }, [updateUrl]);
+
+  // Handle browser Back / Forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const state = getInitialStateFromUrl();
+      setActiveTabState(state.tab);
+      setSelectedDocIdState(state.docId);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Find selected document if any
   const selectedDoc = useMemo(() => {
@@ -52,15 +114,6 @@ export default function App() {
     });
   }, [searchQuery, selectedCategoryFilter]);
 
-  const handleOpenDoc = (id: string) => {
-    setSelectedDocId(id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleBackToDocs = () => {
-    setSelectedDocId(null);
-  };
-
   const categories = ['Todos', 'Historia Global', 'Historia Argentina', 'Epidemiología', 'Trastornos Clínicos'];
 
   return (
@@ -68,17 +121,19 @@ export default function App() {
       {/* Header Navigation */}
       <Header
         activeTab={activeTab}
-        setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setSelectedDocId(null);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        setActiveTab={navigateToTab}
         onOpenEmergency={() => setIsEmergencyOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={(q) => {
           setSearchQuery(q);
-          if (q.trim().length > 0 && selectedDocId) {
-            setSelectedDocId(null);
+          if (q.trim().length > 0) {
+            if (activeTab !== 'documents') {
+              setActiveTabState('documents');
+              updateUrl('documents', null);
+            }
+            if (selectedDocId) {
+              setSelectedDocIdState(null);
+            }
           }
         }}
       />
@@ -207,21 +262,21 @@ export default function App() {
 
                       <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                         <button
-                          onClick={() => setActiveTab('documents')}
+                          onClick={() => navigateToTab('documents')}
                           className="px-6 py-3.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-sm transition-all shadow-lg hover:shadow-teal-500/25 flex items-center gap-2 cursor-pointer"
                         >
                           <BookOpen className="w-4 h-4" />
                           Explorar los 13 Documentos
                         </button>
                         <button
-                          onClick={() => setActiveTab('community')}
+                          onClick={() => navigateToTab('community')}
                           className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-sm transition-all flex items-center gap-2 cursor-pointer"
                         >
                           <MessageSquareHeart className="w-4 h-4 text-rose-400" />
                           Board de Testimonios
                         </button>
                         <button
-                          onClick={() => setActiveTab('contact')}
+                          onClick={() => navigateToTab('contact')}
                           className="px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold text-sm transition-all flex items-center gap-2 cursor-pointer"
                         >
                           <Mail className="w-4 h-4 text-teal-300" />
@@ -277,7 +332,7 @@ export default function App() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                       <div 
-                        onClick={() => setActiveTab('documents')}
+                        onClick={() => navigateToTab('documents')}
                         className="p-5 rounded-2xl bg-teal-50/50 border border-teal-200/80 hover:bg-teal-50 transition-all cursor-pointer group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-teal-700 text-white flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -295,7 +350,7 @@ export default function App() {
                       </div>
 
                       <div 
-                        onClick={() => setActiveTab('documents')}
+                        onClick={() => navigateToTab('documents')}
                         className="p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 hover:bg-emerald-50 transition-all cursor-pointer group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -313,7 +368,7 @@ export default function App() {
                       </div>
 
                       <div 
-                        onClick={() => setActiveTab('community')}
+                        onClick={() => navigateToTab('community')}
                         className="p-5 rounded-2xl bg-rose-50/50 border border-rose-200/80 hover:bg-rose-50 transition-all cursor-pointer group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -331,7 +386,7 @@ export default function App() {
                       </div>
 
                       <div 
-                        onClick={() => setActiveTab('contact')}
+                        onClick={() => navigateToTab('contact')}
                         className="p-5 rounded-2xl bg-slate-100 border border-slate-200 hover:bg-slate-150 transition-all cursor-pointer group"
                       >
                         <div className="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -394,7 +449,7 @@ export default function App() {
                     </div>
 
                     <button
-                      onClick={() => setActiveTab('documents')}
+                      onClick={() => navigateToTab('documents')}
                       className="text-xs font-bold text-teal-800 hover:text-teal-950 flex items-center gap-1 self-start md:self-auto"
                     >
                       Ver todos los documentos <ArrowRight className="w-4 h-4" />
@@ -430,7 +485,7 @@ export default function App() {
                       </div>
 
                       <button
-                        onClick={() => setActiveTab('community')}
+                        onClick={() => navigateToTab('community')}
                         className="px-5 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-semibold text-xs sm:text-sm transition-all shadow-xs cursor-pointer"
                       >
                         Ver Board Completo & Compartir Relato
@@ -488,7 +543,7 @@ export default function App() {
                         </p>
                         <div className="flex flex-wrap items-center gap-3 pt-2">
                           <button
-                            onClick={() => setActiveTab('contact')}
+                            onClick={() => navigateToTab('contact')}
                             className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                           >
                             <Mail className="w-4 h-4" />
@@ -539,11 +594,7 @@ export default function App() {
       <Footer
         onSelectDocument={handleOpenDoc}
         onOpenEmergency={() => setIsEmergencyOpen(true)}
-        setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setSelectedDocId(null);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        setActiveTab={navigateToTab}
       />
     </div>
   );

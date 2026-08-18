@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Send, ShieldCheck, HeartHandshake, CheckCircle2, PhoneCall, Globe2 } from 'lucide-react';
+import { Mail, Send, CheckCircle2, PhoneCall, Globe2, Copy, Check } from 'lucide-react';
 
 interface ContactSectionProps {
   onOpenEmergency: () => void;
@@ -11,6 +11,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ onOpenEmergency 
   const [subject, setSubject] = useState('Consulta General');
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,6 +19,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ onOpenEmergency 
     window.location.href = mailtoUrl;
     setSent(true);
     setTimeout(() => setSent(false), 5000);
+  };
+
+  const handleCopyMessage = () => {
+    const textToCopy = `Para: websaludmental01@gmail.com\nAsunto: [Portal Salud Mental] ${subject} - ${name || 'Sin nombre'}\nDe: ${email || 'Sin correo'}\n\nMensaje:\n${message}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
   };
 
   return (
@@ -78,7 +86,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ onOpenEmergency 
             </p>
             <button
               onClick={onOpenEmergency}
-              className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors"
+              className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors cursor-pointer"
             >
               Llamar a Líneas de Crisis (135 Arg)
             </button>
@@ -147,16 +155,24 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ onOpenEmergency 
               />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-slate-500">
-                Al hacer clic, se abrirá tu aplicación de correo.
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleCopyMessage}
+                disabled={!message.trim()}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors disabled:opacity-40 cursor-pointer"
+                title="Copiar texto del mensaje al portapapeles"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                <span>{copied ? 'Copiado al portapapeles' : 'Copiar mensaje'}</span>
+              </button>
+
               <button
                 type="submit"
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-semibold transition-all cursor-pointer shadow-xs"
               >
                 <Send className="w-4 h-4" />
-                Enviar Mensaje
+                Enviar Correo
               </button>
             </div>
 
