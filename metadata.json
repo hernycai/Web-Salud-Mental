@@ -1,0 +1,6 @@
+{
+  "name": "Portal de Salud Mental",
+  "description": "Plataforma integral informativa sobre salud mental global y en Argentina, guías clínicas de las 10 patologías principales, historia de las disciplinas psi y board comunitario de testimonios anónimos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
