@@ -7,7 +7,10 @@ import {
   BookOpen, 
   ExternalLink,
   Lock,
-  Heart
+  Heart,
+  Github,
+  Linkedin,
+  Code2
 } from 'lucide-react';
 import { DOCUMENTS_DATA } from '../data/documentsData';
 
@@ -188,7 +191,53 @@ export const Footer: React.FC<FooterProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-4 text-slate-500">
+          {/* Author / Designer Credit & Social Links */}
+          <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-teal-400 shrink-0" />
+              <span>
+                Firma y diseño a cargo de <strong className="text-slate-200 font-semibold">Hernán A. Luciano</strong>
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <a
+                href="mailto:hluciano@gmail.com"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition-colors shadow-2xs group"
+                title="Email de Hernán A. Luciano"
+                aria-label="Email de Hernán A. Luciano"
+              >
+                <Mail className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
+                <span className="font-medium text-xs">hluciano@gmail.com</span>
+              </a>
+
+              <a
+                href="https://github.com/hernycai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition-colors shadow-2xs group"
+                title="Perfil de GitHub de Hernán A. Luciano"
+                aria-label="GitHub de Hernán A. Luciano"
+              >
+                <Github className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
+                <span className="font-medium text-xs">GitHub</span>
+              </a>
+
+              <a
+                href="https://www.linkedin.com/in/hernanluciano/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition-colors shadow-2xs group"
+                title="Perfil de LinkedIn de Hernán A. Luciano"
+                aria-label="LinkedIn de Hernán A. Luciano"
+              >
+                <Linkedin className="w-4 h-4 text-teal-400 group-hover:scale-110 transition-transform" />
+                <span className="font-medium text-xs">LinkedIn</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3 text-slate-500 text-[11px]">
             <div>
               © {new Date().getFullYear()} Portal de Salud Mental Argentina & Global. Diseñado bajo estándares de accesibilidad universal (WCAG) y rigor científico.
             </div>
